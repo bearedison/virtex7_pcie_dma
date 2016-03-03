@@ -1,0 +1,82 @@
+#!/bin/sh
+
+# script derived from drivers_tdaq script by Markus Joos, CERN
+
+export DRIVER_PATH=../drivers
+
+#export CMEM_PARAMS="gfpbpa_size=32 gfpbpa_quantum=1"
+export CMEM_PARAMS="gfpbpa_size=128 gfpbpa_quantum=4"
+#export CMEM_PARAMS="gfpbpa_size=1024 gfpbpa_quantum=1"
+
+# See how we were called.
+case "$1" in
+  start)
+        echo "Starting cmem driver "
+        # load the module
+        /sbin/insmod -f $DRIVER_PATH/cmem-`uname -r`.ko $CMEM_PARAMS
+        # remove old device node
+        rm -f /dev/cmem
+        # get major number
+        major=`awk "\\$2==\"cmem\" {print \\$1}" /proc/devices`
+        echo major number for cmem is $major
+        # make device node
+        mknod /dev/cmem c $major 0
+        #give permissions
+        chmod 666 /dev/cmem
+        echo
+
+        export WUPPERCARDS=`lspci -n | grep -c -e "10ee:7039"`
+        echo $WUPPERCARDS wupper cards found
+        if [ $WUPPERCARDS -gt 0 ]; then
+          echo "Starting wupper driver "
+          # load the module
+          /sbin/insmod -f $DRIVER_PATH/wupper-`uname -r`.ko
+          # remove old device node
+          rm -f /dev/wupper
+          # get major number
+          major=`awk "\\$2==\"wupper\" {print \\$1}" /proc/devices`
+          echo major number wupper is $major
+          # make device node
+          mknod /dev/wupper c $major 0
+          # give permissions
+          chmod 666 /dev/wupper
+          echo
+        fi
+        ;;
+
+  stop)
+        echo "Shutting down cmem driver "
+        /sbin/rmmod cmem
+
+        /sbin/lsmod | grep wupper
+        if [ $? = 0 ]; then
+          echo "Shutting down wupper driver "
+          /sbin/rmmod wupper
+        fi
+        ;;
+
+   status)
+        /sbin/lsmod | grep cmem
+        if [ $? = 0 ]; then
+          echo ""
+          echo ">>>>>> Status of the cmem driver"
+          echo ""
+          more /proc/cmem
+        fi
+
+        /sbin/lsmod | grep wupper
+        if [ $? = 0 ]; then
+          echo ""
+          echo ">>>>>> Status of the wupper driver "
+          echo ""
+          more /proc/wupper
+        fi
+        ;;
+
+  *)
+        echo "*** Usage: drivers_wupper {start|stop|status}"
+        exit 1
+
+esac
+
+exit 0

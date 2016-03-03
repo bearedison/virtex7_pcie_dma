@@ -1,0 +1,10 @@
+#!/bin/bash
+cd cmem
+make clean
+cd ../wupper
+make clean
+cd ../drivers
+rm *.ko
+cd ..
+
+

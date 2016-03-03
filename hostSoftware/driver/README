@@ -1,0 +1,22 @@
+Contents of the directories
+
+cmem: source and Makefile cmem driver
+drivers: contains the drivers after building
+
+wupper: source and Makefile cmem driver
+include: include files needed by drivers.
+scripts: script for starting and stopping of wupper and cmem drivers and making /dev/wupper, /dev/cmem
+The script makedrivers builds all drivers by running make in the cmem and wupper directories
+The script cleandrivers removes all intermediate build products from the cmem and wupper
+directories and the drivers from the drivers directory.
+
+The drivers can be built and loaded under SLC6-64 bits and also under Ubuntu (kernel version 3.13.0-44a),
+
+For loading the drivers (root privileges required):
+
+cd scripts
+./drivers_wupper start
+
+Unloading the drivers:
+./drivers_wupper stop
+
